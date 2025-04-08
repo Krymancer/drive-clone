@@ -1,16 +1,15 @@
 "use client"
 
-import { useMemo, useState } from "react"
 import { Button } from "~/components/ui/button"
 import { FileRow, FolderRow } from "./file-row"
-import type { files, folders } from "~/server/db/schema"
+import type { fileSchema, folderSchema } from "~/server/db/schema"
 import { ChevronRight, Upload } from "lucide-react"
 import Link from "next/link"
 
 export default function DriveContents(props: {
-  files: typeof files.$inferSelect[],
-  folders: typeof folders.$inferSelect[],
-  parents: typeof folders.$inferSelect[],
+  files: typeof fileSchema.$inferSelect[],
+  folders: typeof folderSchema.$inferSelect[],
+  parents: typeof folderSchema.$inferSelect[],
 }) {
   const handleUpload = () => {
     alert("Upload functionality would be implemented here")
