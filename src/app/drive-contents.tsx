@@ -78,7 +78,7 @@ export default function DriveContents(props: {
           </div>
           <ul>
             {props.folders.map((folder) => (
-              <FolderRow key={folder.id} folder={folder} handleFolderClick={() => handleFolderClick(folder.id)} />
+              <FolderRow key={folder.id} folder={folder} />
             ))}
             {props.files.map((file) => (
               <FileRow key={file.id} file={file} />
