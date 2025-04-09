@@ -1,8 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
-import { mockFiles, mockFolders } from "~/lib/mock-data";
+import { mockFolders } from "~/lib/mock-data";
 import { db } from "~/server/db";
-import { fileSchema, folderSchema } from "~/server/db/schema";
+import { folderSchema } from "~/server/db/schema";
 
 export default async function Sandbox() {
   const user = await auth();

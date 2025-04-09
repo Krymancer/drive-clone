@@ -18,10 +18,13 @@ export const ourFileRouter = {
     .middleware(async ({ input }) => {
       const user = await auth();
 
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
       if (!user.userId) throw new UploadThingError("Unauthorized");
 
       const folder = await QUERIES.getFolderById(input.folderId);
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
       if (!folder) throw new UploadThingError("Folder not found");
+      // eslint-disable-next-line @typescript-eslint/only-throw-error
       if (folder.ownerId !== user.userId) throw new UploadThingError("Unauthorized");
 
       return { userId: user.userId, parentId: input.folderId };
