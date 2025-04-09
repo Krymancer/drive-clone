@@ -2,7 +2,7 @@ import "server-only";
 
 import { eq } from "drizzle-orm";
 import { db } from ".";
-import { fileSchema, folderSchema } from "./schema";
+import { fileSchema, folderSchema, type FileInsertType } from "./schema";
 
 export const QUERIES = {
   getAllParentsForFolder: async function (folderId: number) {
@@ -27,6 +27,15 @@ export const QUERIES = {
   },
   getFiles: async function (parentId: number) {
     return db.select().from(fileSchema).where(eq(fileSchema.parent, parentId));
+  },
+  getFolderById: async function (folderId: number) {
+    const [folder] = await db.select().from(folderSchema).where(eq(folderSchema.id, folderId));
+    return folder;
   }
 };
 
+export const MUTATIONS = {
+  createFile: async function (input: { file: FileInsertType, userId: string }) {
+    return await db.insert(fileSchema).values(input.file);
+  }
+}
