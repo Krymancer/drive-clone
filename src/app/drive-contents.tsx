@@ -5,15 +5,16 @@ import type { fileSchema, folderSchema } from "~/server/db/schema"
 import { ChevronRight, Upload } from "lucide-react"
 import Link from "next/link"
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs"
+import { UploadButton } from "~/components/uploadthing"
+import { useRouter } from "next/navigation"
 
 export default function DriveContents(props: {
   files: typeof fileSchema.$inferSelect[],
   folders: typeof folderSchema.$inferSelect[],
   parents: typeof folderSchema.$inferSelect[],
+  currentFolderId: number,
 }) {
-  const handleUpload = () => {
-    alert("Upload functionality would be implemented here")
-  }
+  const navigate = useRouter();
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-8">
@@ -64,6 +65,15 @@ export default function DriveContents(props: {
             ))}
           </ul>
         </div>
+        <UploadButton
+          endpoint="imageUploader"
+          input={{
+            folderId: props.currentFolderId,
+          }}
+          onClientUploadComplete={() => {
+            navigate.refresh();
+          }}
+        />
       </div>
     </div>
   )
