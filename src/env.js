@@ -23,7 +23,8 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    NEXT_PUBLIC_POSTHOG_KEY: z.string(),
+    NEXT_PUBLIC_POSTHOG_HOST: z.string(),
   },
 
   /**
@@ -37,6 +38,8 @@ export const env = createEnv({
     SINGLESTORE_DATABASE_NAME: process.env.SINGLESTORE_DATABASE_NAME,
     SINGLESTORE_DATABASE_USERNAME: process.env.SINGLESTORE_DATABASE_USERNAME,
     SINGLESTORE_DATABASE_PASSWORD: process.env.SINGLESTORE_DATABASE_PASSWORD,
+    NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+    NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**
