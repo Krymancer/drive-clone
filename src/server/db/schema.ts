@@ -10,6 +10,8 @@ export const fileSchema = createTable('files', {
   name: text('name').notNull(),
   size: int('size').notNull(),
   url: text('url').notNull(),
+  key: text('key').notNull(),
+  type: text('type').notNull(),
   parent: bigint('parent', { mode: "number", unsigned: true }).notNull(),
   createdAt: timestamp('created_at', { mode: "date" }).defaultNow(),
   updatedAt: timestamp('updated_at', { mode: "date" }).defaultNow().onUpdateNow(),
