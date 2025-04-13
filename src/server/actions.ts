@@ -89,7 +89,10 @@ export default async function createFolder(folder: FolderInsertType) {
 
   if (!session.userId) return { error: "Unauthorized" };
 
-  const [createdFolder] = await db.insert(folderSchema).values(folder).$returningId();
+  const [createdFolder] = await db.insert(folderSchema).values({
+    ...folder,
+    ownerId: session.userId,
+  }).$returningId();
 
   if (!createdFolder) return { error: "Failed to create folder" };
 

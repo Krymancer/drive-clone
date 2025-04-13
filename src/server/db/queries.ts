@@ -2,7 +2,8 @@ import "server-only";
 
 import { eq, and, isNull } from "drizzle-orm";
 import { db } from ".";
-import { fileSchema, folderSchema, type FileInsertType } from "./schema";
+import { fileSchema, folderSchema } from "./schema";
+import type { FolderTreeNode } from "~/lib/types";
 
 export const QUERIES = {
   getAllParentsForFolder: async function (folderId: number) {
@@ -23,10 +24,10 @@ export const QUERIES = {
     return parents;
   },
   getFolders: async function (parentId: number) {
-    return db.select().from(folderSchema).where(eq(folderSchema.parent, parentId)).orderBy(folderSchema.createdAt);
+    return db.select().from(folderSchema).where(eq(folderSchema.parent, parentId)).orderBy(folderSchema.name);
   },
   getFiles: async function (parentId: number) {
-    return db.select().from(fileSchema).where(eq(fileSchema.parent, parentId)).orderBy(fileSchema.createdAt);
+    return db.select().from(fileSchema).where(eq(fileSchema.parent, parentId)).orderBy(fileSchema.name);
   },
   getFolderById: async function (folderId: number) {
     const [folder] = await db.select().from(folderSchema).where(eq(folderSchema.id, folderId));
@@ -43,43 +44,79 @@ export const QUERIES = {
         )
       );
     return folder;
+  },
+  getFolderTreeData: async function (folderId: number): Promise<FolderTreeNode> {
+    const [folder] = await db.select().from(folderSchema).where(eq(folderSchema.id, folderId));
+
+    if (!folder) throw new Error("Folder not found");
+
+    const folderFiles = await db.select().from(fileSchema).where(eq(fileSchema.parent, folderId));
+
+    const childFolders = await db.select().from(folderSchema).where(eq(folderSchema.parent, folderId));
+
+    const childrenData = await Promise.all(
+      childFolders.map(async (childFolder) => {
+        return QUERIES.getFolderTreeData(childFolder.id);
+      })
+    );
+
+    return {
+      folder,
+      children: {
+        files: folderFiles,
+        folders: childrenData,
+      },
+    };
+  },
+  getFolderTreeDataFromRoot: async function (currentFolderId: number): Promise<FolderTreeNode> {
+    const pathToRoot = new Set<number>();
+
+    let [currentFolder] = await db.select().from(folderSchema).where(eq(folderSchema.id, currentFolderId));
+
+    while (currentFolder) {
+      pathToRoot.add(currentFolder.id);
+      if (!currentFolder.parent) break;
+      [currentFolder] = await db.select().from(folderSchema).where(eq(folderSchema.id, currentFolder.parent));
+    }
+
+    // Helper function to build tree recursively
+    async function buildTree(parentId: number | null): Promise<FolderTreeNode[]> {
+      // Get all folders with this parent
+      const foldersList = await db.select().from(folderSchema).where(parentId === null
+        ? isNull(folderSchema.parent)
+        : eq(folderSchema.parent, parentId)).orderBy(folderSchema.name);
+
+      // Build tree for each folder
+      const folderNodes = await Promise.all(
+        foldersList.map(async (folder) => {
+          // Get files only if this folder is the current folder
+          const folderFiles = folder.id === currentFolderId
+            ? await db.select().from(fileSchema).where(eq(fileSchema.parent, folder.id)).orderBy(fileSchema.name)
+            : [];
+
+          // Recursively get children
+          const childFolders = await buildTree(folder.id);
+
+          return {
+            folder,
+            children: {
+              files: folderFiles,
+              folders: childFolders,
+            },
+            isInPath: pathToRoot.has(folder.id)
+          };
+        })
+      );
+
+      return folderNodes;
+    }
+    
+    const [treeNode] = await buildTree(null);
+
+    if (!treeNode) {
+      throw new Error("No folders found");
+    }
+
+    return treeNode;
   }
 };
-
-export const MUTATIONS = {
-  createFile: async function (input: { file: FileInsertType, userId: string }) {
-    return await db.insert(fileSchema).values(input.file);
-  },
-  onboardUser: async function (userId: string) {
-    const [rootFolder] = await db
-      .insert(folderSchema)
-      .values({
-        name: "Root",
-        parent: null,
-        ownerId: userId,
-      })
-      .$returningId();
-
-    const rootFolderId = rootFolder!.id;
-
-    await db.insert(folderSchema).values([
-      {
-        name: "Trash",
-        parent: rootFolderId,
-        ownerId: userId,
-      },
-      {
-        name: "Shared",
-        parent: rootFolderId,
-        ownerId: userId,
-      },
-      {
-        name: "Documents",
-        parent: rootFolderId,
-        ownerId: userId,
-      },
-    ]);
-
-    return rootFolderId;
-  },
-}

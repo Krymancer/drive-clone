@@ -8,11 +8,10 @@ import { usePostHog } from 'posthog-js/react'
 import posthog from 'posthog-js'
 import { PostHogProvider as PHProvider } from 'posthog-js/react'
 import { env } from "~/env"
-import { useAuth, useUser } from "@clerk/nextjs"
+import { useUser } from "@clerk/nextjs"
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+  useEffect(() => {    
     posthog.init(env.NEXT_PUBLIC_POSTHOG_KEY, {
       api_host: '/ingest',
       ui_host: "https://ui.posthog.com",
