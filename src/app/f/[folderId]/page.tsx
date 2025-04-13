@@ -1,7 +1,9 @@
+import { FileGrid } from "~/components/file-grid"
+import { Header } from "~/components/header"
+import { Sidebar } from "~/components/sidebar"
 import { QUERIES } from "~/server/db/queries";
-import DriveContents from "./drive-contents";
 
-export default async function GoogleDriveClone(props: { params: Promise<{ folderId: string }> }) {
+export default async function DrivePage(props: { params: Promise<{ folderId: string }> }) {
   const params = await props.params;
   const parsedFolderId = parseInt(params.folderId);
 
@@ -9,17 +11,22 @@ export default async function GoogleDriveClone(props: { params: Promise<{ folder
     return <div>Invalid folder ID</div>;
   }
 
-  const [folders, files, parents] = await Promise.all([
+  const [folders, files, parents, folderTree] = await Promise.all([
     QUERIES.getFolders(parsedFolderId),
     QUERIES.getFiles(parsedFolderId),
-    QUERIES.getAllParentsForFolder(parsedFolderId)
+    QUERIES.getAllParentsForFolder(parsedFolderId),
+    QUERIES.getFolderTreeDataFromRoot(parsedFolderId)
   ]);
 
-  return <DriveContents
-    files={files}
-    folders={folders}
-    parents={parents}
-    currentFolderId={parsedFolderId}
-  />;
+  return (
+    <div className="flex h-screen bg-background">
+      <Sidebar currentFolderId={parsedFolderId} folderTree={folderTree} />
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <Header parents={parents} />
+        <main className="flex-1 overflow-auto p-4">
+          <FileGrid folders={folders} files={files} currentFolderId={parsedFolderId} />
+        </main>
+      </div>
+    </div>
+  )
 }
-
